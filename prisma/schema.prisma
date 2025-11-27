@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Transcripts {
+  id             String    @id @default(uuid())
+  org            String?
+  title          String?
+  url            String?
+  transcript     String?   @db.Text
+  summary        String?   @db.Text
+  topics         String?   @db.Text
+  keywords       String?   @db.Text
+  transcriptDate DateTime?
+  path           String?
+  audioType      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // processTranscripts ProcessTranscript[]
+
+  @@map("transcripts")
+}
+
+model Process {
+  id              String    @id @default(uuid())
+  processNumber   String?   @unique
+  reportDate      String?
+  summary         String?   @db.Text
+  questionAnswers String?   @db.Text
+  transcriptId    String?
+  deleted         Boolean?  @default(false)
+  status          String?
+  email           String?
+  errorMessage    String?
+  title           String?
+  mediaName       String?
+  observations    String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // processTranscripts ProcessTranscript[]
+  // processUsers       ProcessUser[]
+  // processStatuses    ProcessStatus[]
+  transcript   Transcripts[] @relation(fields: [transcriptId], references: [id])
+
+  @@map("processes")
+}
+
+model Dialogs {
+  id        String   @id @default(uuid())
+  interlocutor String?
+  paragrafo String?
+  startTime String?
+  startTimeSec String?
+  videoId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // @@map("dialogos")
+}
+
+model Documents {
+  id        String   @id @default(uuid())
+  processNumber   String?
+  documentURL String?
+  documentName  String?
+  documentExtension String?
+  documentOCR String?
+  summary String?
+  documentOCRTime Float?
+  email String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // @@map("documents")
+}
+
+model Files {
+  id        String   @id @default(uuid())
+  videoId   String //devemos associar videoId com videoId de Dialogs? seria videoId equivalente ao id de Files?
+  org       String?
+  videoPath String?
+  videoDurationSeconds  Int?
+  status    String?
+  statusDescription String?
+  dateTime  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("files")
+}
+
+model ProcessUser {
+  id            String   @id @default(uuid())
+  processNumber String?
+  userEmail        String?
+  hasPermission Boolean
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  process Process? @relation(fields: [processNumber], references: [processNumber])
+
+  @@map("processUsers")
+}
+
+model ProcessStatus {
+  id            String   @id @default(uuid())
+  processId     String?
+  status        String?
+  multimodalStatus  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  process Process? @relation(fields: [processId], references: [id])
+
+  @@map("process_status")
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  text      String?
+  // processTypeId String //relacionaria com qual id? criaremos uma tabela de processType?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("questions")
+}
+
+model TaskTranscript {
+  id        String   @id @default(uuid())
+  name      String?
+  initialPrompt String?
+  uniquePrompt  String?
+  jsonExpected  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks_transcripts")
+}
+
+model TranscriptedDialog {
+  id        String   @id @default(uuid())
+  transcriptId  String
+  sequence  Int?
+  start Float?
+  end Float?
+  speaker String?
+  text  String?
+  transcriptDate  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transcript Transcripts? @relation(fields: [transcriptId], references: [id])
+
+  @@map("transcriptedDialogs")
+}
+
+model TranscriptedGDoc {
+  id        String   @id @default(uuid())
+  transcriptId  String
+  docUrl    String?
+  documentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transcript Transcripts? @relation(fields: [transcriptId], references: [id])
+  document Documents? @relation(fields: [documentId], references: [id])
+  @@map("transcriptedGDocs")
+}
+
+model TranscriptedWords {
+  id        String   @id @default(uuid())
+  sequence  Int?
+  transcriptId  String
+  word  String?
+  startSeconds  Float?
+  endSeconds  Float?
+  stopWord  Int?
+  confidence  Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transcript Transcripts? @relation(fields: [transcriptId], references: [id])
+
+  @@map("transcriptedWork")
+}
+
+model TranscriptedWordsDiarization {
+  id        String   @id @default(uuid())
+  sequence  Int?
+  transcriptId  String
+  word  String?
+  startSeconds  Float?
+  endSeconds  Float?
+  stopWord  Int?
+  speaker  String?
+  transcriptDate  DateTime?
+  confidence  Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transcript Transcripts? @relation(fields: [transcriptId], references: [id])
+
+  @@map("transcriptedWordsDiarization")
+}
+
+model TranscriptsOpt {
+  id             String    @id @default(uuid())
+  transcriptId   String
+  processNumber  String?
+  title          String?
+  url            String?
+  transcript     String?   @db.Text
+  summary        String?   @db.Text
+  topics         String?   @db.Text
+  keywords       String?   @db.Text
+  sentimentAnalysis   String?
+  processType      String?
+  email          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  transcript Transcripts? @relation(fields: [transcriptId], references: [id])
+
+  @@map("transcripts")
+}
+
+model WordsUnreliable {
+  id             String    @id @default(uuid())
+  word           String?
+  transcriptId   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+   transcript Transcripts? @relation(fields: [transcriptId], references: [id])
+
+}
