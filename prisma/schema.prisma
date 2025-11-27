@@ -59,7 +59,7 @@ model Process {
 
   transcript      Transcripts? @relation("ProcessTranscript", fields: [transcriptId], references: [id])
 
-  users           ProcessUser[]
+  users           User[]
   statuses        ProcessStatus[]
 
   @@map("processes")
@@ -122,15 +122,15 @@ model Files {
 //
 // PROCESS USER
 //
-model ProcessUser {
+model User {
   id            String   @id @default(uuid())
-  processNumber String?
+  processId String?
   userEmail     String?
   hasPermission Boolean
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  process Process? @relation(fields: [processNumber], references: [processNumber])
+  process Process? @relation(fields: [processId], references: [id])
 
   @@map("processUsers")
 }
